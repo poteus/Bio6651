@@ -12,7 +12,7 @@ from commands2.sysid import SysIdRoutine
 from generated.tuner_constants import TunerConstants
 from telemetry import Telemetry
 
-from phoenix6 import swerve
+from phoenix6 import swerve, SignalLogger
 from wpilib import DriverStation
 from wpimath.geometry import Rotation2d
 from wpimath.units import rotationsToRadians
@@ -53,6 +53,8 @@ class RobotContainer:
         self._joystick = CommandXboxController(0)
 
         self.drivetrain = TunerConstants.create_drivetrain()
+
+        # SignalLogger.set_path("C:\Users\Pandora's Box\Downloads")
 
         # Configure the button bindings
         self.configureButtonBindings()
@@ -113,6 +115,10 @@ class RobotContainer:
         (self._joystick.start() & self._joystick.x()).whileTrue(
             self.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
         )
+       
+       
+        self._joystick.leftStick().onTrue(commands2.cmd.runOnce(lambda: SignalLogger.start()))
+        self._joystick.rightStick().onTrue(commands2.cmd.runOnce(lambda: SignalLogger.stop()))
 
         # reset the field-centric heading on left bumper press
         self._joystick.leftBumper().onTrue(
