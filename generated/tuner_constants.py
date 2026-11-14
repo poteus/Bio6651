@@ -18,10 +18,10 @@ class TunerConstants:
     # output type specified by SwerveModuleConstants.SteerMotorClosedLoopOutput
     _steer_gains = (
         configs.Slot0Configs()
-        .with_k_p(100)
+        .with_k_p(100) # (if steering is 'buzzing' set it to 45) 
         .with_k_i(0)
-        .with_k_d(0.5)
-        .with_k_s(0.1)
+        .with_k_d(0.3)
+        .with_k_s(0.15)
         .with_k_v(2.05)
         .with_k_a(0)
         .with_static_feedforward_sign(
@@ -32,11 +32,12 @@ class TunerConstants:
     # output type specified by SwerveModuleConstants.DriveMotorClosedLoopOutput
     _drive_gains = (
         configs.Slot0Configs()
-        .with_k_p(0.1)
+        .with_k_p(0.2)
         .with_k_i(0)
         .with_k_d(0)
-        .with_k_s(0)
+        .with_k_s(0.18)
         .with_k_v(0.124)
+        .with_k_a(0.01)
     )
 
     # The closed-loop output type to use for the steer motors;
@@ -61,7 +62,21 @@ class TunerConstants:
 
     # Initial configs for the drive and steer motors and the azimuth encoder; these cannot be null.
     # Some configs will be overwritten; check the `with_*_initial_configs()` API documentation.
-    _drive_initial_configs = configs.TalonFXConfiguration()
+
+    _drive_initial_configs = (configs.TalonFXConfiguration().with_current_limits(
+            configs.CurrentLimitsConfigs()
+        
+            .with_stator_current_limit(65.0)
+            .with_stator_current_limit_enable(True)
+
+            .with_supply_current_limit(45)
+            .with_supply_current_limit_enable(True)
+        )
+        .with_closed_loop_ramps(
+            configs.ClosedLoopRampsConfigs()
+            .with_voltage_closed_loop_ramp_period(.06)
+        )
+    )
     _steer_initial_configs = configs.TalonFXConfiguration().with_current_limits(
         configs.CurrentLimitsConfigs()
         # Swerve azimuth does not require much torque output, so we can set a relatively low
@@ -363,4 +378,4 @@ class TunerSwerveDrivetrain(
             arg1,
             arg2,
             arg3,
-        )
+        )
