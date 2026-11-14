@@ -3,6 +3,7 @@
 # Open Source Software; you can modify and/or share it under the terms of
 # the WPILib BSD license file in the root directory of this project.
 #
+import math
 
 import commands2
 from commands2 import cmd
@@ -16,6 +17,7 @@ from phoenix6 import swerve, SignalLogger
 from wpilib import DriverStation
 from wpimath.geometry import Rotation2d
 from wpimath.units import rotationsToRadians
+from wpimath import applyDeadband
 
 
 class RobotContainer:
@@ -35,16 +37,26 @@ class RobotContainer:
         )  # 3/4 of a rotation per second max angular velocity
 
         # Setting up bindings for necessary control of the swerve drive platform
+        # self._drive = (
+        #     swerve.requests.FieldCentric()
+        #     .with_deadband(self._max_speed * 0.1)
+        #     .with_rotational_deadband(
+        #         self._max_angular_rate * 0.1
+        #     )  # Add a 10% deadband
+        #     .with_drive_request_type(
+        #         swerve.SwerveModule.DriveRequestType.VELOCITY
+        #     )  # Use open-loop control for drive motors
+        # )
+
         self._drive = (
             swerve.requests.FieldCentric()
-            .with_deadband(self._max_speed * 0.1)
-            .with_rotational_deadband(
-                self._max_angular_rate * 0.1
-            )  # Add a 10% deadband
+            .with_deadband(0.0)
+            .with_rotational_deadband(0.0)
             .with_drive_request_type(
-                swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
-            )  # Use open-loop control for drive motors
+                swerve.SwerveModule.DriveRequestType.VELOCITY
+            )
         )
+
         self._brake = swerve.requests.SwerveDriveBrake()
         self._point = swerve.requests.PointWheelsAt()
 
@@ -59,6 +71,11 @@ class RobotContainer:
         # Configure the button bindings
         self.configureButtonBindings()
 
+    @staticmethod
+    def _shape_axis(value: float, deadband: float = 0.08) -> float
+        deadbanded = applyDeadband(value, deadband)
+        return math.copysign(deadbanded * deadbanded, deadbanded)
+
     def configureButtonBindings(self) -> None:
         """
         Use this method to define your button->command mappings. Buttons can be created by
@@ -68,19 +85,35 @@ class RobotContainer:
 
         # Note that X is defined as forward according to WPILib convention,
         # and Y is defined as to the left according to WPILib convention.
+        # self.drivetrain.setDefaultCommand(
+        #     # Drivetrain will execute this command periodically
+        #     self.drivetrain.apply_request(
+        #         lambda: (
+        #             self._drive.with_velocity_x(
+        #                 -self._joystick.getLeftY() * self._max_speed
+        #             )  # Drive forward with negative Y (forward)
+        #             .with_velocity_y(
+        #                 -self._joystick.getLeftX() * self._max_speed
+        #             )  # Drive left with negative X (left)
+        #             .with_rotational_rate(
+        #                 -self._joystick.getRightX() * self._max_angular_rate
+        #             )  # Drive counterclockwise with negative X (left)
+        #         )
+        #     )
+        # )
+
         self.drivetrain.setDefaultCommand(
-            # Drivetrain will execute this command periodically
             self.drivetrain.apply_request(
                 lambda: (
                     self._drive.with_velocity_x(
-                        -self._joystick.getLeftY() * self._max_speed
-                    )  # Drive forward with negative Y (forward)
+                        self._shape_axis(-self._joystick.getLeftY()) * self._max_speed
+                    )
                     .with_velocity_y(
-                        -self._joystick.getLeftX() * self._max_speed
-                    )  # Drive left with negative X (left)
+                        self._shape_axis(-self._joystick.getLeftx()) * self._max_speed
+                    )
                     .with_rotational_rate(
-                        -self._joystick.getRightX() * self._max_angular_rate
-                    )  # Drive counterclockwise with negative X (left)
+                        self._shape_axis(-self._joystick.getRightX()) * self._max_angular_rate
+                    )
                 )
             )
         )
