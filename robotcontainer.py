@@ -72,7 +72,7 @@ class RobotContainer:
         self.configureButtonBindings()
 
     @staticmethod
-    def _shape_axis(value: float, deadband: float = 0.08) -> float
+    def _shape_axis(value: float, deadband: float = 0.08) -> float:
         deadbanded = applyDeadband(value, deadband)
         return math.copysign(deadbanded * deadbanded, deadbanded)
 
