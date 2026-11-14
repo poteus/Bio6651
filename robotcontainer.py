@@ -109,7 +109,7 @@ class RobotContainer:
                         self._shape_axis(-self._joystick.getLeftY()) * self._max_speed
                     )
                     .with_velocity_y(
-                        self._shape_axis(-self._joystick.getLeftx()) * self._max_speed
+                        self._shape_axis(-self._joystick.getLeftX()) * self._max_speed
                     )
                     .with_rotational_rate(
                         self._shape_axis(-self._joystick.getRightX()) * self._max_angular_rate
