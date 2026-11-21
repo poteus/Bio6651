@@ -238,30 +238,6 @@ class CommandSwerveDrivetrain(Subsystem, TunerSwerveDrivetrain):
         """
         return self.run(lambda: self.set_control(request()))
 
-    def sys_id_quasistatic(self, direction: SysIdRoutine.Direction) -> Command:
-        """
-        Runs the SysId Quasistatic test in the given direction for the routine
-        specified by self.sys_id_routine_to_apply.
-
-        :param direction: Direction of the SysId Quasistatic test
-        :type direction: SysIdRoutine.Direction
-        :returns: Command to run
-        :rtype: Command
-        """
-        return self._sys_id_routine_to_apply.quasistatic(direction)
-
-    def sys_id_dynamic(self, direction: SysIdRoutine.Direction) -> Command:
-        """
-        Runs the SysId Dynamic test in the given direction for the routine
-        specified by self.sys_id_routine_to_apply.
-
-        :param direction: Direction of the SysId Dynamic test
-        :type direction: SysIdRoutine.Direction
-        :returns: Command to run
-        :rtype: Command
-        """
-        return self._sys_id_routine_to_apply.dynamic(direction)
-
     def periodic(self):
         # Periodically try to apply the operator perspective.
         # If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
