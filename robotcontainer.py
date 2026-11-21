@@ -19,7 +19,6 @@ from wpimath.geometry import Rotation2d
 from wpimath.units import rotationsToRadians
 from wpimath import applyDeadband
 
-
 class RobotContainer:
     """
     This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -27,7 +26,6 @@ class RobotContainer:
     periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
     subsystems, commands, and button mappings) should be declared here.
     """
-
     def __init__(self) -> None:
         self._max_speed = (
             1.0 * TunerConstants.speed_at_12_volts
@@ -37,17 +35,6 @@ class RobotContainer:
         )  # 3/4 of a rotation per second max angular velocity
 
         # Setting up bindings for necessary control of the swerve drive platform
-        # self._drive = (
-        #     swerve.requests.FieldCentric()
-        #     .with_deadband(self._max_speed * 0.1)
-        #     .with_rotational_deadband(
-        #         self._max_angular_rate * 0.1
-        #     )  # Add a 10% deadband
-        #     .with_drive_request_type(
-        #         swerve.SwerveModule.DriveRequestType.VELOCITY
-        #     )  # Use open-loop control for drive motors
-        # )
-
         self._drive = (
             swerve.requests.FieldCentric()
             .with_deadband(0.0)
@@ -66,8 +53,6 @@ class RobotContainer:
 
         self.drivetrain = TunerConstants.create_drivetrain()
 
-        # SignalLogger.set_path("C:\Users\Pandora's Box\Downloads")
-
         # Configure the button bindings
         self.configureButtonBindings()
 
@@ -85,23 +70,6 @@ class RobotContainer:
 
         # Note that X is defined as forward according to WPILib convention,
         # and Y is defined as to the left according to WPILib convention.
-        # self.drivetrain.setDefaultCommand(
-        #     # Drivetrain will execute this command periodically
-        #     self.drivetrain.apply_request(
-        #         lambda: (
-        #             self._drive.with_velocity_x(
-        #                 -self._joystick.getLeftY() * self._max_speed
-        #             )  # Drive forward with negative Y (forward)
-        #             .with_velocity_y(
-        #                 -self._joystick.getLeftX() * self._max_speed
-        #             )  # Drive left with negative X (left)
-        #             .with_rotational_rate(
-        #                 -self._joystick.getRightX() * self._max_angular_rate
-        #             )  # Drive counterclockwise with negative X (left)
-        #         )
-        #     )
-        # )
-
         self.drivetrain.setDefaultCommand(
             self.drivetrain.apply_request(
                 lambda: (
@@ -136,6 +104,7 @@ class RobotContainer:
 
         # Run SysId routines when holding back/start and X/Y.
         # Note that each routine should be run exactly once in a single log.
+        #################################################################################################################
         (self._joystick.back() & self._joystick.y()).whileTrue(
             self.drivetrain.sys_id_dynamic(SysIdRoutine.Direction.kForward)
         )
@@ -147,11 +116,11 @@ class RobotContainer:
         )
         (self._joystick.start() & self._joystick.x()).whileTrue(
             self.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
-        )
-       
-       
+        )       
+
         self._joystick.leftStick().onTrue(commands2.cmd.runOnce(lambda: SignalLogger.start()))
         self._joystick.rightStick().onTrue(commands2.cmd.runOnce(lambda: SignalLogger.stop()))
+        #################################################################################################################
 
         # reset the field-centric heading on left bumper press
         self._joystick.leftBumper().onTrue(
