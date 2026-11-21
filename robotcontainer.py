@@ -104,10 +104,6 @@ class RobotContainer:
             self.drivetrain.runOnce(self.drivetrain.seed_field_centric)
         )
 
-        self.drivetrain.register_telemetry(
-            lambda state: self._logger.telemeterize(state)
-        )
-
     def getAutonomousCommand(self) -> commands2.Command:
         """
         Use this to pass the autonomous command to the main {@link Robot} class.
