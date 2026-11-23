@@ -62,7 +62,7 @@ class Vision(commands2.Subsystem):
                 [yaw_deg, yaw_rate_deg_per_sec, 0.0, 0.0, 0.0, 0.0]
             )
 
-            self._process
+            self._process_mt2(name, yaw_rate_deg_per_sec)
 
     def _process_mt2(self, name, yaw_rate_deg):
         raw = self.mt2_subscribers[name].get()
