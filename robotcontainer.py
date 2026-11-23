@@ -4,7 +4,6 @@
 # the WPILib BSD license file in the root directory of this project.
 #
 import math
-
 import commands2
 from commands2 import cmd
 from commands2.button import CommandXboxController, Trigger
@@ -13,10 +12,12 @@ from commands2.sysid import SysIdRoutine
 from generated.tuner_constants import TunerConstants
 
 from phoenix6 import swerve, SignalLogger
-from wpilib import DriverStation
+from wpilib import DriverStation, SmartDashboard
 from wpimath.geometry import Rotation2d
 from wpimath.units import rotationsToRadians
 from wpimath import applyDeadband
+
+from subsystems.vision import Vision
 
 class RobotContainer:
     """
@@ -49,6 +50,8 @@ class RobotContainer:
         self._joystick = CommandXboxController(0)
 
         self.drivetrain = TunerConstants.create_drivetrain()
+
+        self.vision = Vision(["limelight-one"], self.drivetrain)
 
         # Configure the button bindings
         self.configureButtonBindings()
