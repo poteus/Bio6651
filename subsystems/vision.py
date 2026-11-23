@@ -2,9 +2,12 @@ from wpilib import Field2d, SmartDashboard
 from wpimath.geometry import Pose2d
 from phoenix6.hardware import Pigeon2
 import ntcore
+import commands2
 
-class Vision:
+class Vision(commands2.Subsystem):
     def __init__(self, limelight_names, drivetrain):
+        super().__init__()
+
         self.mt2_init = False
 
         self.drivetrain = drivetrain
@@ -25,7 +28,7 @@ class Vision:
             self.mt1_subscribers[name] = table.getFloatArrayTopic("botpose_wpiblue").subscribe([])
 
             self.imu_publishers[name] = table.getIntegerTopic("imumode_set").publish()
-            self.orientation_publishers[name] = table.getDoubleArrayTopic("robot_orientation_set").publish()
+            self.orientation_publishers[name] = table.getFloatArrayTopic("robot_orientation_set").publish()
 
     def set_imu_mode(self, limelight_name, mode = 1):
         """
@@ -44,7 +47,7 @@ class Vision:
         pass
 
     def periodic(self):
-        pose = self.drivetrain.get_state().pose()
+        pose = self.drivetrain.get_state().pose
         rotation_in_degrees = pose.rotation().degrees()
 
         SmartDashboard.putNumber("Pose X", round(pose.X(), 3))
