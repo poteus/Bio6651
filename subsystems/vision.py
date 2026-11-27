@@ -56,14 +56,14 @@ class Vision(commands2.Subsystem):
         pose = self.drivetrain.get_state().pose
         yaw_deg = pose.rotation().degrees()
         yaw_rate_deg_per_sec = self.drivetrain.pigeon2.get_angular_velocity_z_world().value
-        pigeon_yaw = self.drivetrain.pigeon2.get_yaw()
+        pigeon_yaw = self.drivetrain.pigeon2.get_yaw().value
 
         self.field.setRobotPose(pose)
         SmartDashboard.putNumber("Pose X", round(pose.X(), 1))
         SmartDashboard.putNumber("Pose Y", round(pose.Y(), 1))
         SmartDashboard.putNumber("Pose Yaw", round(yaw_deg, 1))
 
-        SmartDashboard.putNumber("PigeonYaw", round(pigeon_yaw.value, 2))
+        SmartDashboard.putNumber("PigeonYaw", round(pigeon_yaw, 2))
 
         for name in self.limelight_names:
             self.orientation_publishers[name].set(
