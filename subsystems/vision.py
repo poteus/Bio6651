@@ -29,18 +29,23 @@ class Vision(commands2.Subsystem):
         self.field = Field2d()
         SmartDashboard.putData("Field", self.field)
 
+        self.mt2_seeded_publisher = vision_table.getBooleanTopic("mt2_seeded").publish()
+        self.mt2_seeded_publisher.set(self.mt2_seeded)
+
         for name in self.limelight_names:
             table = self.instance.getTable(name)
-            self.mt1_subscribers[name] = table.getFloatArrayTopic("botpose_wpiblue").subscribe([])
-            self.mt2_subscribers[name] = table.getFloatArrayTopic("botpose_orb_wpiblue").subscribe([])
+            self.mt1_subscribers[name] = table.getDoubleArrayTopic("botpose_wpiblue").subscribe([])
+            self.mt2_subscribers[name] = table.getDoubleArrayTopic("botpose_orb_wpiblue").subscribe([])
 
             self.imu_publishers[name] = table.getIntegerTopic("imumode_set").publish()
+            self.set_imu_mode(name,1)
+
             self.orientation_publishers[name] = table.getFloatArrayTopic("robot_orientation_set").publish()
 
-            self.elastic_publishers["botpose_wpiblue_rounded"] = table.getDoubleArrayTopic("botpose_wpiblue_rounded").publish()
-            self.elastic_publishers["botpose_orb_wpiblue_rounded"] = table.getDoubleArrayTopic("botpose_orb_wpiblue_rounded").publish()
+            self.elastic_publishers[f"{name}/botpose_wpiblue_rounded"] = table.getDoubleArrayTopic("botpose_wpiblue_rounded").publish()
+            self.elastic_publishers[f"{name}/botpose_orb_wpiblue_rounded"] = table.getDoubleArrayTopic("botpose_orb_wpiblue_rounded").publish()
 
-            self.imu_publishers[name].set(4)
+            
 
     def set_imu_mode(self, limelight_name, mode = 1):
         """
@@ -82,29 +87,33 @@ class Vision(commands2.Subsystem):
             for i in range(len(mt2)):
                 mt2_new_array.append(round(mt2[i], 1)) 
 
-            self.elastic_publishers["botpose_wpiblue_rounded"].set(mt1_new_array)
-            self.elastic_publishers["botpose_orb_wpiblue_rounded"].set(mt2_new_array)
+            self.elastic_publishers[f"{name}/botpose_wpiblue_rounded"].set(mt1_new_array)
+            self.elastic_publishers[f"{name}/botpose_orb_wpiblue_rounded"].set(mt2_new_array)
 
             self._process_mt2(name, yaw_rate_deg_per_sec)
 
             if self.mt2_seeded == False:
                 self.pigeon_array.append(pigeon_yaw)
-                max = 0
+                max_difference = 0
                 if len(self.pigeon_array) == 10:
                     mean = sum(self.pigeon_array)/len(self.pigeon_array)
 
                     for value in self.pigeon_array:
-                        if abs(value - mean) > max:
-                            max = abs(value - mean)
-                    if max < 0.2:
+                        if abs(value - mean) > max_difference:
+                            max_difference = abs(value - mean)
+                    if max_difference < 0.2:
                         self.mt2_seeded = True
-                        self.drivetrain.pigeon2.set_yaw(mean)
                         self.pigeon_array = []
+                        self.seed_pigeon(mean)
                     else:
                         self.pigeon_array.pop(0)
+                self.mt2_seeded_publisher.set(self.mt2_seeded)
 
 
-
+    def seed_pigeon(self, yaw_deg):
+        self.drivetrain.pigeon2.set_yaw(yaw_deg)
+        for name in self.limelight_names:
+            self.set_imu_mode(name, 4)
 
     def _process_mt2(self, name, yaw_rate_deg):
         raw = self.mt2_subscribers[name].get()
