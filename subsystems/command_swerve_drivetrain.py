@@ -216,7 +216,7 @@ class CommandSwerveDrivetrain(Subsystem, TunerSwerveDrivetrain):
         TunerSwerveDrivetrain.add_vision_measurement(
             self,
             vision_robot_pose,
-            utils.fpga_to_current_time(timestamp),
+            timestamp, #utils.fpga_to_current_time(timestamp),
             vision_measurement_std_devs
         )
 
