@@ -6,6 +6,9 @@ from typing import Callable, overload
 from wpilib import DriverStation, Notifier, RobotController
 from wpilib.sysid import SysIdRoutineLog
 from wpimath.geometry import Pose2d, Rotation2d
+from pathplannerlib.auto import AutoBuilder
+from pathplannerlib.controller import PPHolonomicDriveController
+from pathplannerlib.config import RobotConfig, PIDConstants
 
 from generated.tuner_constants import TunerSwerveDrivetrain
 
@@ -133,6 +136,24 @@ class CommandSwerveDrivetrain(Subsystem, TunerSwerveDrivetrain):
             self, drivetrain_constants, arg0, arg1, arg2, arg3
         )
 
+        self._pathplanner_robot_speeds = swerve.requests.ApplyRobotSpeeds()
+
+        config = RobotConfig.fromGUISettings()
+
+        AutoBuilder.configure(
+            self.get_pose, # Robot pose supplier
+            self.reset_pose, # Method to reset odometry (will be called if your auto has a starting pose)
+            self.get_robot_relative_speeds, # ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+            lambda speeds, feedforwards: self.drive_robot_relative(speeds), # Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also outputs individual module feedforwards
+            PPHolonomicDriveController( # PPHolonomicController is the built in path following controller for holonomic drive trains
+                PIDConstants(5.0, 0.0, 0.0), # Translation PID constants
+                PIDConstants(5.0, 0.0, 0.0) # Rotation PID constants
+            ),
+            config, # The robot configuration
+            self.shouldFlipPath, # Supplier to control path flipping based on alliance color
+            self # Reference to this subsystem to set requirements
+        )
+
         self._sim_notifier: Notifier | None = None
         self._last_sim_time: units.second = 0.0
 
@@ -146,6 +167,20 @@ class CommandSwerveDrivetrain(Subsystem, TunerSwerveDrivetrain):
 
         if utils.is_simulation():
             self._start_sim_thread()
+
+    def shouldFlipPath(self):
+        return (
+            DriverStation.getAlliance() or DriverStation.Alliance.kBlue
+        ) == DriverStation.Alliance.kRed
+
+    def get_pose(self) -> Pose2d:
+        return self.get_state().pose
+
+    def get_robot_relative_speeds(self):
+        return self.get_state().speeds
+
+    def drive_robot_relative(self, speeds, feedforwards=None):
+        self.set_control(self._pathplanner_robot_speeds.with_speeds(speeds))
 
     def apply_request(
         self, request: Callable[[], swerve.requests.SwerveRequest]
